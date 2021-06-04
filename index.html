@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            background-color: rgb(206, 198, 157);
+            position: relative;
+        }
+
+        .container {
+            width: 900px;
+            height: 600px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgb(238, 233, 226);
+            border-radius: 50px;
+            box-shadow: 1px 1px 10px black;
+        }
+
+        #text {
+            width: 500px;
+            height: 150px;
+            background-image: url('./images/title.png');
+            position: absolute;
+            top: -160px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        #game {
+            width: 750px;
+            position: absolute;
+            top: 50%;
+            left: 52%;
+            transform: translate(-50%, -50%);
+        }
+
+        .card {
+            width: 150px;
+            height: 98px;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform .5s;
+            float: left;
+            margin: 15px;
+        }
+
+        .card-back {
+            width: 100%;
+            height: 100%;
+            background-image: url('./images/card/back.png');
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: contain;
+            position: absolute;
+            backface-visibility: hidden;
+            -web-backface-visibility: hidden;
+        }
+
+        .card-front {
+            width: 100%;
+            height: 100%;
+            background-image: url('./images/card/a1.png');
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: contain;
+            position: absolute;
+            transform: rotateY(180deg);
+        }
+
+        .card-open {
+            transform: rotateY(180deg);
+        }
+
+        .answer {
+            width: 600px;
+            height: 600px;
+            transition: all 0.8s;
+        }
+
+        .answercard {
+            width: 600px;
+            height: 600px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-repeat: no-repeat;
+            background-size: contain;
+            background-position: center;
+        }
+
+        #ans-btn {
+            width: 180px;
+            height: 47px;
+            position: absolute;
+            top: 73%;
+            left: 50%;
+            transform: translateX(-50%);
+            background-image: url('./images/button.png');
+            background-repeat: no-repeat;
+            background-size: contain;
+            border: 0;
+            background-color: rgba(0, 0, 0, 0);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div id="text"></div>
+        <div id="game">
+        </div>
+    </div>
+    <div class="answer">
+        <!-- <div class="answercard" style="background-image:url('./images/card/back.png')"></div>
+        <input type="button" value="" id="ans-btn"> -->
+    </div>
+    <script src="./jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+    <script>
+        for (let i = 0; i < 16; i++) {
+            $('#game').append(`
+                <div class="card">
+                    <div class="card-back"></div>
+                    <div class="card-front"></div>
+                </div>
+            `)
+        }
+
+        for (let i = 0; i < 8; i++) {
+            let number = i % 8 + 1
+            $('.card').eq(i).find('.card-front').css('background-image', `url('./images/card/a${number}.png')`)
+            $('.card').eq(i).attr('data-card', number)
+
+            let target = Math.floor(Math.random() * 16)
+            $('.card').eq(target).insertAfter($('.card').eq(i))
+        }
+
+        for (let i = 8; i < 16; i++) {
+            let number = i % 8 + 1
+            $('.card').eq(i).find('.card-front').css('background-image', `url('./images/card/b${number}.png')`)
+            $('.card').eq(i).attr('data-card', number)
+
+            let target = Math.floor(Math.random() * 16)
+            $('.card').eq(target).insertAfter($('.card').eq(i))
+        }
+
+        $('#game').on('click', '.card', function () {
+            if ($('.card-open').length < 2 && !$(this).hasClass('card-open')) {
+                $(this).addClass('card-open')
+            }
+
+            if ($('.card-open').length === 2) {
+                if ($('.card-open').eq(0).attr('data-card') === $('.card-open').eq(1).attr('data-card')) {
+                    // 淡出，使用 card-clear 標記已解決
+                    $('.card-open').fadeTo(1000, 0).addClass('card-clear')
+
+                    setTimeout(() => {
+                        $('.answer').append(`
+                            <div class="answercard" style="background-image:url('./images/card/c${$('.card-open').eq(0).attr('data-card')}.png')"></div>
+                            <input type="button" value="" id="ans-btn">
+                        `)
+                        $('#ans-btn').on('click', function () {
+                            $('.answercard').remove()
+                            $('#ans-btn').remove()
+                        })
+                    }, 1000);
+                }
+                // 不管一不一樣都翻回來
+                setTimeout(() => {
+                    $('.card-open').removeClass('card-open')
+                }, 1000);
+            }
+
+            if ($('.card-clear').length === 16) {
+                setTimeout(() => {
+                    Swal.fire({
+                        title: '恭喜過關',
+                    })
+                }, 2000)
+            }
+        })
+    </script>
+</body>
+
+</html>
